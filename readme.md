@@ -66,12 +66,12 @@ git clone https://github.com/folke/lazy.nvim.git ~/.local/share/nvim/site/pack/l
 
 #### Python (pyright)
 ```sh
-npm install -g pyright
+npm install pyright
 ```
 
 #### JavaScript/TypeScript (tsserver)
 ```sh
-npm install -g typescript typescript-language-server
+npm install typescript typescript-language-server
 ```
 
 #### C/C++ (clangd)
