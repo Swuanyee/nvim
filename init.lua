@@ -1,23 +1,57 @@
 -- init.lua
 
--- Basic settings
-vim.opt.termguicolors = true              -- Set true color
-vim.opt.compatible = false                -- Disable compatibility with old versions of Vim
+----------------------------
+-- Basic Settings
+----------------------------
+vim.opt.termguicolors = true              -- Enable true color
+vim.opt.compatible = false                -- Disable compatibility mode
 vim.opt.number = true                     -- Show line numbers
 vim.opt.relativenumber = true             -- Show relative line numbers
 vim.opt.autoindent = true                 -- Enable automatic indentation
-vim.cmd("runtime macros/matchit.vim")     -- Enable matchit.vim for extended % matching
+vim.opt.backspace = "indent,eol,start"    -- Allow backspace over indents, line breaks, and start of insert
+vim.opt.tags = "./tags;,tags;"            -- Search for tags in the current and parent directories
+vim.cmd("syntax on")                      -- Enable syntax highlighting
+vim.cmd("runtime macros/matchit.vim")     -- Enable extended % matching
 vim.cmd("filetype plugin on")             -- Enable file type plugins
-vim.opt.backspace = "indent,eol,start"    -- Configure backspace to work more naturally
-vim.opt.tags = "./tags;,tags;"            -- Set tags file path
-vim.cmd("syntax on")
 
 -- Command-line abbreviation
 vim.cmd('cnoreabbrev fzf FZF')
 
--- Plugin setup using lazy.nvim
+----------------------------
+-- Lazy.nvim Bootstrapping
+----------------------------
+local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
+if not vim.loop.fs_stat(lazypath) then
+  vim.fn.system({
+    "git", "clone", "--filter=blob:none",
+    "https://github.com/folke/lazy.nvim.git",
+    "--branch=stable", lazypath
+  })
+end
+vim.opt.rtp:prepend(lazypath)
+
+----------------------------
+-- Plugin Setup using lazy.nvim
+----------------------------
 require("lazy").setup({
-  { 'folke/lazy.nvim' },              -- Plugin manager
+
+  -- Plugin Manager
+  { 'folke/lazy.nvim' },
+
+  -- Mason for managing LSPs (force load on startup)
+  {
+    "williamboman/mason.nvim",
+    lazy = false,
+    config = function()
+      require("mason").setup()
+    end,
+  },
+  {
+    "williamboman/mason-lspconfig.nvim",
+    lazy = false,
+  },
+
+  -- Colorscheme
   {
     'sainnhe/everforest',
     lazy = false,
@@ -26,83 +60,164 @@ require("lazy").setup({
       vim.opt.background = 'dark'
       vim.cmd("colorscheme everforest")
     end,
-  },				      -- Everforest colorscheme
-  { 'neovim/nvim-lspconfig' },        -- LSP configuration
-  { 'nvim-treesitter/nvim-treesitter', run = ':TSUpdate' }, -- Treesitter syntax highlighting
-  { 'dense-analysis/ale' },           -- Asynchronous linting/fixing
-  { 'junegunn/fzf', run = function() vim.fn['fzf#install']() end }, -- Fuzzy file finder
-  { 'github/copilot.vim' }            -- GitHub Copilot for Vim
+  },
+
+  -- File Explorer
+  {
+    "nvim-neo-tree/neo-tree.nvim",
+    branch = "v3.x",
+    dependencies = {
+      "nvim-lua/plenary.nvim",
+      "nvim-tree/nvim-web-devicons",
+      "MunifTanjim/nui.nvim",
+    }
+  },
+
+  -- LSP and Treesitter
+  { 'neovim/nvim-lspconfig' },
+  { 'nvim-treesitter/nvim-treesitter', build = ':TSUpdate' },
+
+  -- Linting & Formatting
+  { 'dense-analysis/ale' },
+
+  -- Fuzzy Finder
+  { 'junegunn/fzf', build = function() vim.fn['fzf#install']() end },
+  { 'junegunn/fzf.vim' },
+
+  -- GitHub Copilot
+  {
+    "zbirenbaum/copilot.lua",
+    cmd = "Copilot",
+    event = "InsertEnter",
+    config = function()
+      require("copilot").setup({
+        panel = { enabled = true },
+        suggestion = { enabled = true, auto_trigger = true },
+        filetypes = { ["*"] = true },
+      })
+    end,
+  },
+
+  -- Copilot Completion with LSP
+  {
+    "zbirenbaum/copilot-cmp",
+    after = { "copilot.lua" },
+    config = function()
+      require("copilot_cmp").setup()
+    end,
+  },
+
+  -- Completion Engine (nvim-cmp)
+  {
+    "hrsh7th/nvim-cmp",
+    dependencies = {
+      "hrsh7th/cmp-nvim-lsp",
+      "hrsh7th/cmp-buffer",
+      "hrsh7th/cmp-path",
+      "hrsh7th/cmp-cmdline",
+      "hrsh7th/cmp-nvim-lua",
+    },
+    config = function()
+      local cmp = require("cmp")
+      cmp.setup({
+        mapping = {
+          ["<C-Space>"] = cmp.mapping.complete(),
+          ["<C-e>"] = cmp.mapping.close(),
+          -- Use Ctrl-y to confirm a selection
+          ["<C-y>"] = cmp.mapping.confirm({ select = false }),
+          -- Use arrow keys for navigation
+          ["<Down>"] = cmp.mapping.select_next_item(),
+          ["<Up>"] = cmp.mapping.select_prev_item(),
+        },
+        sources = cmp.config.sources({
+          { name = "nvim_lsp" },
+          { name = "copilot" },
+          { name = "buffer" },
+          { name = "path" },
+        }),
+      })
+    end,
+  },
+
+  -- Lualine for Statusline and Tabline
+  {
+    'nvim-lualine/lualine.nvim',
+    dependencies = { 'nvim-tree/nvim-web-devicons' }
+  },
 })
 
--- Key mappings and commands
-vim.api.nvim_set_keymap('n', 'gp', ":silent %!prettier --stdin-filepath %<CR>", { noremap = true })
-
--- ALE (Asynchronous Lint Engine) settings
-vim.g.ale_fixers = {
-  python = {'autopep8'},
-  javascript = {'prettier', 'eslint'},
-  ['*'] = {'trim_whitespace', 'remove_trailing_lines'}
-}
-vim.g.ale_linters_explicit = 1
-vim.g.ale_sign_error = '>>'
-vim.g.ale_sign_warning = '⚠'
-vim.g.ale_disable_lsp = 1
-
--- Ensure that the 'nvim-lspconfig' plugin is installed
+----------------------------
+-- LSP Configuration
+----------------------------
 local lspconfig = require('lspconfig')
 
--- Function to set up key bindings after the LSP attaches to the current buffer
 local on_attach = function(client, bufnr)
   local function buf_set_keymap(...) vim.api.nvim_buf_set_keymap(bufnr, ...) end
   local opts = { noremap = true, silent = true }
-
-  -- Key mappings for LSP
-  -- 'gd' - Go to definition
+  
+  -- LSP Keybindings
   buf_set_keymap('n', 'gd', '<Cmd>lua vim.lsp.buf.definition()<CR>', opts)
-  -- 'gD' - Go to declaration
   buf_set_keymap('n', 'gD', '<Cmd>lua vim.lsp.buf.declaration()<CR>', opts)
-  -- 'gr' - Find references
   buf_set_keymap('n', 'gr', '<Cmd>lua vim.lsp.buf.references()<CR>', opts)
-  -- 'gi' - Go to implementation
   buf_set_keymap('n', 'gi', '<Cmd>lua vim.lsp.buf.implementation()<CR>', opts)
-  -- 'K' - Hover for information
   buf_set_keymap('n', 'K', '<Cmd>lua vim.lsp.buf.hover()<CR>', opts)
-  -- '<leader>rn' - Rename symbol
   buf_set_keymap('n', '<leader>rn', '<Cmd>lua vim.lsp.buf.rename()<CR>', opts)
 end
 
--- Enable the Pyright language server for Python
-lspconfig.pyright.setup {
-  on_attach = on_attach,
-}
+-- Configure language servers
+require("lspconfig").tsserver.setup { on_attach = on_attach }
+require("lspconfig").pyright.setup { on_attach = on_attach }
 
--- Enable the tsserver language server for JavaScript/TypeScript
-lspconfig.tsserver.setup {
-  on_attach = on_attach,
-}
-
--- Enable the Clangd language server for C/C++
-lspconfig.clangd.setup {
-  on_attach = on_attach,
-}
-
--- Enable the SourceKit language server for Swift
-lspconfig.sourcekit.setup {
-  on_attach = on_attach,
-}
-
--- Enable the Kotlin language server for Kotlin
-lspconfig.kotlin_language_server.setup {
-  on_attach = on_attach,
-}
-
--- Tree-sitter configuration
-require'nvim-treesitter.configs'.setup {
-  ensure_installed = {"python", "javascript", "typescript", "html", "css", "lua", "c", "swift", "kotlin"}, -- List of parsers to install
-  highlight = {
-    enable = true, -- Enable syntax highlighting
+----------------------------
+-- Tree-sitter Configuration
+----------------------------
+require('nvim-treesitter.configs').setup {
+  ensure_installed = {
+    "python", "javascript", "typescript", "html", "css",
+    "lua", "c", "swift", "kotlin"
   },
-  indent = {
-    enable = false, -- Disable indentation based on Tree-sitter
-  },
+  highlight = { enable = true },
+  indent = { enable = false },
 }
+
+----------------------------
+-- Lualine Configuration (Statusline & Tabline)
+----------------------------
+require('lualine').setup {
+  options = {
+    icons_enabled = true,
+    theme = 'everforest',
+    component_separators = { left = '', right = '' },
+    section_separators = { left = '', right = '' },
+  },
+  sections = {
+    lualine_a = {'mode'},
+    lualine_b = {'branch'},
+    lualine_c = {
+      { 'buffers', mode = 2 }
+    },
+    lualine_x = {'encoding', 'fileformat', 'filetype'},
+    lualine_y = {'progress'},
+    lualine_z = {'location'}
+  },
+  tabline = {
+    lualine_a = {
+      {
+        'buffers',
+        fmt = function(name, context)
+          return string.format("%d: %s", context.bufnr, name)
+        end,
+      },
+    },
+    lualine_b = {'windows'},
+  },
+  extensions = {'fzf', 'nvim-tree', 'quickfix'}
+}
+
+----------------------------
+-- GitHub Copilot Key Mapping
+----------------------------
+-- (Optional) Map a key for accepting Copilot suggestions via copilot-cmp if desired.
+-- For instance, you might keep a mapping like <Tab>c for copilot if you want it separately:
+vim.keymap.set("i", "<Tab>c", require("copilot.suggestion").accept, { silent = true })
+
