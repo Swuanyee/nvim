@@ -1,5 +1,4 @@
 -- init.lua
-
 ----------------------------
 -- Basic Settings
 ----------------------------
@@ -146,7 +145,15 @@ require("lazy").setup({
     'nvim-lualine/lualine.nvim',
     dependencies = { 'nvim-tree/nvim-web-devicons' }
   },
-})
+
+  -- vim-tpipeline
+  {
+  'vimpostor/vim-tpipeline',
+  config = function()
+    vim.g.tpipeline_autoembed = 1
+  end
+  }
+)
 
 ----------------------------
 -- LSP Configuration
@@ -167,7 +174,7 @@ local on_attach = function(client, bufnr)
 end
 
 -- Configure language servers
-require("lspconfig").tsserver.setup { on_attach = on_attach }
+require("lspconfig").ts_ls.setup { on_attach = on_attach }  -- or tsserver if you prefer
 require("lspconfig").pyright.setup { on_attach = on_attach }
 
 ----------------------------
@@ -191,6 +198,7 @@ require('lualine').setup {
     theme = 'everforest',
     component_separators = { left = '', right = '' },
     section_separators = { left = '', right = '' },
+    globalstatus = true,  -- Forces one statusline at the bottom
   },
   sections = {
     lualine_a = {'mode'},
@@ -198,9 +206,9 @@ require('lualine').setup {
     lualine_c = {
       { 'buffers', mode = 2 }
     },
-    lualine_x = {'encoding', 'fileformat', 'filetype'},
+    lualine_x = {'encoding','fileformat', 'filetype'},
     lualine_y = {'progress'},
-    lualine_z = {'location'}
+    lualine_z = {'location'},
   },
   tabline = {
     lualine_a = {
@@ -211,8 +219,7 @@ require('lualine').setup {
         end,
       },
     },
-    lualine_b = {'windows'},
   },
-  extensions = {'fzf', 'nvim-tree', 'quickfix'}
+  extensions = {'fzf', 'nvim-tree', 'quickfix'},
 }
 
