@@ -193,3 +193,7 @@ end
 
 vim.o.tabline = '%!v:lua.my_tabline()'
 vim.opt.showtabline = 2
+
+-- neotree configuration
+-- shorcut to toggle neotree ctrl + n
+vim.api.nvim_set_keymap('n', '<C-n>', ':Neotree toggle<CR>', {noremap = true, silent = true})
