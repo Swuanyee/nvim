@@ -1,9 +1,7 @@
 -- init.lua
 ----------------------------
 -- Basic Settings
-----------------------------
-vim.opt.termguicolors = true              -- Enable true color
-vim.opt.compatible = false                -- Disable compatibility mode
+---------------------------- vim.opt.termguicolors = true              -- Enable true color vim.opt.compatible = false                -- Disable compatibility mode
 vim.opt.number = true                     -- Show line numbers
 vim.opt.relativenumber = true             -- Show relative line numbers
 vim.opt.autoindent = true                 -- Enable automatic indentation
@@ -12,6 +10,9 @@ vim.opt.tags = "./tags;,tags;"            -- Search for tags in the current and 
 vim.cmd("syntax on")                      -- Enable syntax highlighting
 vim.cmd("runtime macros/matchit.vim")     -- Enable extended % matching
 vim.cmd("filetype plugin on")             -- Enable file type plugins
+
+-- Use a per-window statusline
+vim.opt.laststatus = 2
 
 -- Command-line abbreviation
 vim.cmd('cnoreabbrev fzf FZF')
@@ -24,7 +25,8 @@ if not vim.loop.fs_stat(lazypath) then
   vim.fn.system({
     "git", "clone", "--filter=blob:none",
     "https://github.com/folke/lazy.nvim.git",
-    "--branch=stable", lazypath
+    "--branch=stable",
+    lazypath
   })
 end
 vim.opt.rtp:prepend(lazypath)
@@ -34,10 +36,10 @@ vim.opt.rtp:prepend(lazypath)
 ----------------------------
 require("lazy").setup({
 
-  -- Plugin Manager
+  -- Plugin Manager (optional)
   { 'folke/lazy.nvim' },
 
-  -- Mason for managing LSPs (force load on startup)
+  -- Mason for managing LSPs
   {
     "williamboman/mason.nvim",
     lazy = false,
@@ -50,7 +52,7 @@ require("lazy").setup({
     lazy = false,
   },
 
-  -- Colorscheme
+  -- Colorscheme: Everforest
   {
     'sainnhe/everforest',
     lazy = false,
@@ -61,7 +63,7 @@ require("lazy").setup({
     end,
   },
 
-  -- File Explorer
+  -- File Explorer: neo-tree
   {
     "nvim-neo-tree/neo-tree.nvim",
     branch = "v3.x",
@@ -76,42 +78,27 @@ require("lazy").setup({
   { 'neovim/nvim-lspconfig' },
   { 'nvim-treesitter/nvim-treesitter', build = ':TSUpdate' },
 
-  -- Linting & Formatting
+  -- Linting & Formatting: ALE
   { 'dense-analysis/ale' },
 
-  -- Fuzzy Finder
+  -- Fuzzy Finder: fzf and fzf.
   { 'junegunn/fzf', build = function() vim.fn['fzf#install']() end },
   { 'junegunn/fzf.vim' },
-
-  -- GitHub Copilot (Base)
-  {
-    "zbirenbaum/copilot.lua",
-    cmd = "Copilot",
-    event = "InsertEnter",
-    config = function()
-      require("copilot").setup({
-        panel = { enabled = true },
-        suggestion = { enabled = true, auto_trigger = true },
-        filetypes = { ["*"] = true },
-      })
-    end,
-  },
 
   -- Copilot Chat Integration
   {
     "CopilotC-Nvim/CopilotChat.nvim",
     dependencies = {
-      { "zbirenbaum/copilot.lua" },
+      { "github/copilot.vim" },
       { "nvim-lua/plenary.nvim", branch = "master" },
     },
-    build = "make tiktoken", -- Only necessary on macOS/Linux; remove if not needed
+    build = "make tiktoken", -- Only necessary on macOS/Linux
     opts = {
-      -- Customize CopilotChat options here if desired
-      -- For example: model = "gpt-4o",
+      -- Customize options here, e.g. model = "gpt-4o"
     },
   },
 
-  -- Completion Engine (nvim-cmp)
+  -- Completion Engine: nvim-cmp
   {
     "hrsh7th/nvim-cmp",
     dependencies = {
@@ -140,41 +127,24 @@ require("lazy").setup({
     end,
   },
 
-  -- Lualine for Statusline and Tabline
-  {
-    'nvim-lualine/lualine.nvim',
-    dependencies = { 'nvim-tree/nvim-web-devicons' }
-  },
-
-  -- vim-tpipeline
-  {
-  'vimpostor/vim-tpipeline',
-  config = function()
-    vim.g.tpipeline_autoembed = 1
-  end
-  }
-)
+  -- Removed lualine so that only the built-in statusline and custom tabline are used.
+})
 
 ----------------------------
 -- LSP Configuration
 ----------------------------
-local lspconfig = require('lspconfig')
-
 local on_attach = function(client, bufnr)
   local function buf_set_keymap(...) vim.api.nvim_buf_set_keymap(bufnr, ...) end
   local opts = { noremap = true, silent = true }
-  
-  -- LSP Keybindings
   buf_set_keymap('n', 'gd', '<Cmd>lua vim.lsp.buf.definition()<CR>', opts)
   buf_set_keymap('n', 'gD', '<Cmd>lua vim.lsp.buf.declaration()<CR>', opts)
   buf_set_keymap('n', 'gr', '<Cmd>lua vim.lsp.buf.references()<CR>', opts)
   buf_set_keymap('n', 'gi', '<Cmd>lua vim.lsp.buf.implementation()<CR>', opts)
-  buf_set_keymap('n', 'K', '<Cmd>lua vim.lsp.buf.hover()<CR>', opts)
+  buf_set_keymap('n', 'K',  '<Cmd>lua vim.lsp.buf.hover()<CR>', opts)
   buf_set_keymap('n', '<leader>rn', '<Cmd>lua vim.lsp.buf.rename()<CR>', opts)
 end
 
--- Configure language servers
-require("lspconfig").ts_ls.setup { on_attach = on_attach }  -- or tsserver if you prefer
+require("lspconfig").ts_ls.setup { on_attach = on_attach }
 require("lspconfig").pyright.setup { on_attach = on_attach }
 
 ----------------------------
@@ -190,36 +160,36 @@ require('nvim-treesitter.configs').setup {
 }
 
 ----------------------------
--- Lualine Configuration (Statusline & Tabline)
+-- Built-in Statusline Configuration
 ----------------------------
-require('lualine').setup {
-  options = {
-    icons_enabled = true,
-    theme = 'everforest',
-    component_separators = { left = '', right = '' },
-    section_separators = { left = '', right = '' },
-    globalstatus = true,  -- Forces one statusline at the bottom
-  },
-  sections = {
-    lualine_a = {'mode'},
-    lualine_b = {'branch'},
-    lualine_c = {
-      { 'buffers', mode = 2 }
-    },
-    lualine_x = {'encoding','fileformat', 'filetype'},
-    lualine_y = {'progress'},
-    lualine_z = {'location'},
-  },
-  tabline = {
-    lualine_a = {
-      {
-        'buffers',
-        fmt = function(name, context)
-          return string.format("%d: %s", context.bufnr, name)
-        end,
-      },
-    },
-  },
-  extensions = {'fzf', 'nvim-tree', 'quickfix'},
-}
+vim.opt.statusline = "%f %y %m %r %= [Ln %l/%L, Col %c] [%p%%]"
 
+----------------------------
+-- Custom Tabline Configuration
+----------------------------
+-- This function generates a tabline showing the buffer number and filename for all listed buffers.
+function _G.my_tabline()
+  local s = ""
+  for _, buf in ipairs(vim.api.nvim_list_bufs()) do
+    if vim.api.nvim_buf_get_option(buf, "buflisted") then
+      local bufname = vim.api.nvim_buf_get_name(buf)
+      local filename = vim.fn.fnamemodify(bufname, ":t")
+      if filename == "" then
+        filename = "[No Name]"
+      end
+      -- Highlight the active buffer differently
+      if buf == vim.api.nvim_get_current_buf() then
+        s = s .. "%#TabLineSel#"
+      else
+        s = s .. "%#TabLine#"
+      end
+      -- The tab label shows the buffer number followed by the filename.
+      s = s .. " %" .. buf .. "T " .. buf .. ": " .. filename .. " %X"
+    end
+  end
+  s = s .. "%#TabLineFill#"
+  return s
+end
+
+vim.o.tabline = '%!v:lua.my_tabline()'
+vim.opt.showtabline = 2
