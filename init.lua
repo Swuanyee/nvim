@@ -84,7 +84,7 @@ require("lazy").setup({
   { 'junegunn/fzf', build = function() vim.fn['fzf#install']() end },
   { 'junegunn/fzf.vim' },
 
-  -- GitHub Copilot
+  -- GitHub Copilot (Base)
   {
     "zbirenbaum/copilot.lua",
     cmd = "Copilot",
@@ -98,13 +98,18 @@ require("lazy").setup({
     end,
   },
 
-  -- Copilot Completion with LSP
+  -- Copilot Chat Integration
   {
-    "zbirenbaum/copilot-cmp",
-    after = { "copilot.lua" },
-    config = function()
-      require("copilot_cmp").setup()
-    end,
+    "CopilotC-Nvim/CopilotChat.nvim",
+    dependencies = {
+      { "zbirenbaum/copilot.lua" },
+      { "nvim-lua/plenary.nvim", branch = "master" },
+    },
+    build = "make tiktoken", -- Only necessary on macOS/Linux; remove if not needed
+    opts = {
+      -- Customize CopilotChat options here if desired
+      -- For example: model = "gpt-4o",
+    },
   },
 
   -- Completion Engine (nvim-cmp)
@@ -123,15 +128,12 @@ require("lazy").setup({
         mapping = {
           ["<C-Space>"] = cmp.mapping.complete(),
           ["<C-e>"] = cmp.mapping.close(),
-          -- Use Ctrl-y to confirm a selection
           ["<C-y>"] = cmp.mapping.confirm({ select = false }),
-          -- Use arrow keys for navigation
           ["<Down>"] = cmp.mapping.select_next_item(),
           ["<Up>"] = cmp.mapping.select_prev_item(),
         },
         sources = cmp.config.sources({
           { name = "nvim_lsp" },
-          { name = "copilot" },
           { name = "buffer" },
           { name = "path" },
         }),
@@ -213,11 +215,4 @@ require('lualine').setup {
   },
   extensions = {'fzf', 'nvim-tree', 'quickfix'}
 }
-
-----------------------------
--- GitHub Copilot Key Mapping
-----------------------------
--- (Optional) Map a key for accepting Copilot suggestions via copilot-cmp if desired.
--- For instance, you might keep a mapping like <Tab>c for copilot if you want it separately:
-vim.keymap.set("i", "<Tab>c", require("copilot.suggestion").accept, { silent = true })
 
