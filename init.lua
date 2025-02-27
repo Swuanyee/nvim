@@ -1,7 +1,8 @@
 -- init.lua
 ----------------------------
 -- Basic Settings
----------------------------- vim.opt.termguicolors = true              -- Enable true color vim.opt.compatible = false                -- Disable compatibility mode
+---------------------------- 
+vim.opt.termguicolors = true              -- Enable true color vim.opt.compatible = false
 vim.opt.number = true                     -- Show line numbers
 vim.opt.relativenumber = true             -- Show relative line numbers
 vim.opt.autoindent = true                 -- Enable automatic indentation
