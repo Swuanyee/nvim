@@ -153,7 +153,7 @@ require("lspconfig").pyright.setup { on_attach = on_attach }
 require('nvim-treesitter.configs').setup {
   ensure_installed = {
     "python", "javascript", "typescript", "html", "css",
-    "lua", "c", "swift", "kotlin"
+    "lua", "c"
   },
   highlight = { enable = true },
   indent = { enable = false },
