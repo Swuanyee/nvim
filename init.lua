@@ -1,21 +1,20 @@
--- init.lua
 ----------------------------
 -- Basic Settings
 ---------------------------- 
-vim.opt.termguicolors = true              -- Enable true color vim.opt.compatible = false
-vim.opt.number = true                     -- Show line numbers
+vim.opt.termguicolors = true              -- Enable true color support
+vim.opt.compatible = false                -- Disable legacy Vi compatibility
+vim.opt.number = true                     -- Show absolute line numbers
 vim.opt.relativenumber = true             -- Show relative line numbers
 vim.opt.autoindent = true                 -- Enable automatic indentation
-vim.opt.backspace = "indent,eol,start"    -- Allow backspace over indents, line breaks, and start of insert
-vim.opt.tags = "./tags;,tags;"            -- Search for tags in the current and parent directories
+vim.opt.backspace = "indent,eol,start"    -- Allow natural backspace behavior
+vim.opt.tags = "./tags;,tags;"            -- Search for tags in current and parent directories
 vim.cmd("syntax on")                      -- Enable syntax highlighting
 vim.cmd("runtime macros/matchit.vim")     -- Enable extended % matching
-vim.cmd("filetype plugin on")             -- Enable file type plugins
+vim.cmd("filetype plugin on")             -- Enable filetype-specific plugins
 
--- Use a per-window statusline
-vim.opt.laststatus = 2
+vim.opt.laststatus = 2                    -- Always show statusline
 
--- Command-line abbreviation
+-- Command-line abbreviation: expand "fzf" to "FZF"
 vim.cmd('cnoreabbrev fzf FZF')
 
 ----------------------------
@@ -37,21 +36,8 @@ vim.opt.rtp:prepend(lazypath)
 ----------------------------
 require("lazy").setup({
 
-  -- Plugin Manager (optional)
+  -- Plugin Manager
   { 'folke/lazy.nvim' },
-
-  -- Mason for managing LSPs
-  {
-    "williamboman/mason.nvim",
-    lazy = false,
-    config = function()
-      require("mason").setup()
-    end,
-  },
-  {
-    "williamboman/mason-lspconfig.nvim",
-    lazy = false,
-  },
 
   -- Colorscheme: Everforest
   {
@@ -59,7 +45,7 @@ require("lazy").setup({
     lazy = false,
     priority = 1000,
     config = function()
-      vim.opt.background = 'dark'
+      vim.opt.background = 'light'
       vim.cmd("colorscheme everforest")
     end,
   },
@@ -75,14 +61,14 @@ require("lazy").setup({
     }
   },
 
-  -- LSP and Treesitter
+  -- LSP configuration and Treesitter
   { 'neovim/nvim-lspconfig' },
   { 'nvim-treesitter/nvim-treesitter', build = ':TSUpdate' },
 
   -- Linting & Formatting: ALE
   { 'dense-analysis/ale' },
 
-  -- Fuzzy Finder: fzf and fzf.
+  -- Fuzzy Finder: fzf and fzf.vim
   { 'junegunn/fzf', build = function() vim.fn['fzf#install']() end },
   { 'junegunn/fzf.vim' },
 
@@ -94,9 +80,7 @@ require("lazy").setup({
       { "nvim-lua/plenary.nvim", branch = "master" },
     },
     build = "make tiktoken", -- Only necessary on macOS/Linux
-    opts = {
-      -- Customize options here, e.g. model = "gpt-4o"
-    },
+    opts = {},
   },
 
   -- Completion Engine: nvim-cmp
@@ -127,12 +111,10 @@ require("lazy").setup({
       })
     end,
   },
-
-  -- Removed lualine so that only the built-in statusline and custom tabline are used.
 })
 
 ----------------------------
--- LSP Configuration
+-- LSP Configuration (Native)
 ----------------------------
 local on_attach = function(client, bufnr)
   local function buf_set_keymap(...) vim.api.nvim_buf_set_keymap(bufnr, ...) end
@@ -145,8 +127,13 @@ local on_attach = function(client, bufnr)
   buf_set_keymap('n', '<leader>rn', '<Cmd>lua vim.lsp.buf.rename()<CR>', opts)
 end
 
+-- Configure language servers (install these manually on your system)
 require("lspconfig").ts_ls.setup { on_attach = on_attach }
 require("lspconfig").pyright.setup { on_attach = on_attach }
+require("lspconfig").clangd.setup { on_attach = on_attach }
+-- Add additional servers as needed:
+-- require("lspconfig").sourcekit.setup { on_attach = on_attach }    -- Swift
+-- require("lspconfig").kotlin_language_server.setup { on_attach = on_attach } -- Kotlin
 
 ----------------------------
 -- Tree-sitter Configuration
@@ -168,7 +155,6 @@ vim.opt.statusline = "%f %y %m %r %= [Ln %l/%L, Col %c] [%p%%]"
 ----------------------------
 -- Custom Tabline Configuration
 ----------------------------
--- This function generates a tabline showing the buffer number and filename for all listed buffers.
 function _G.my_tabline()
   local s = ""
   for _, buf in ipairs(vim.api.nvim_list_bufs()) do
@@ -178,13 +164,11 @@ function _G.my_tabline()
       if filename == "" then
         filename = "[No Name]"
       end
-      -- Highlight the active buffer differently
       if buf == vim.api.nvim_get_current_buf() then
         s = s .. "%#TabLineSel#"
       else
         s = s .. "%#TabLine#"
       end
-      -- The tab label shows the buffer number followed by the filename.
       s = s .. " %" .. buf .. "T " .. buf .. ": " .. filename .. " %X"
     end
   end
@@ -195,6 +179,6 @@ end
 vim.o.tabline = '%!v:lua.my_tabline()'
 vim.opt.showtabline = 2
 
--- neotree configuration
--- shorcut to toggle neotree ctrl + n
-vim.api.nvim_set_keymap('n', '<C-n>', ':Neotree toggle<CR>', {noremap = true, silent = true})
+-- File Explorer (neo-tree) key mapping: Toggle with Ctrl+n
+vim.api.nvim_set_keymap('n', '<C-n>', ':Neotree toggle<CR>', { noremap = true, silent = true })
+
