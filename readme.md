@@ -30,8 +30,7 @@ Download and install Neovim from the [official website](https://neovim.io/).
 
 #### Ubuntu
 ```sh
-sudo apt install git
-```
+sudo apt install git ```
 
 #### macOS
 ```sh
@@ -107,7 +106,12 @@ mkdir -p ~/AppData/Local/nvim
 notepad ~/AppData/Local/nvim/init.lua
 ```
 
-Your `init.lua` should include settings for basic options, lazy.nvim bootstrapping, plugin setup (colorscheme, file explorer, LSP, Treesitter, ALE, fzf, Copilot, and nvim-cmp), native LSP key mappings, Treesitter configuration, a built-in statusline, and a custom tabline. Refer to your configuration repository or documentation for the complete content.
+Your `init.lua` should include settings for:
+- Basic options and lazy.nvim bootstrapping
+- Plugin setup for colorscheme, file explorer, native LSP, Treesitter, ALE, Telescope (with the fzf-native extension), Copilot, and nvim-cmp
+- Native LSP key mappings, Treesitter configuration, a built-in statusline, and a custom tabline
+
+Refer to your configuration repository or documentation for the complete content.
 
 ---
 
@@ -129,7 +133,10 @@ Below is a table summarizing the key mappings defined in the configuration:
 |                       | `<Down>`             | Select next completion item                      | `cmp.mapping.select_next_item()`              |
 |                       | `<Up>`               | Select previous completion item                  | `cmp.mapping.select_prev_item()`              |
 | **File Explorer**     | `<C-n>`              | Toggle neo-tree file explorer                    | `:Neotree toggle`                             |
-| **Command-Line Mode** | `fzf`                | Auto-expand to `FZF` command                     | Command-line abbreviation (`cnoreabbrev`)     |
+| **Telescope**         | `<leader>ff`         | Find files using Telescope                       | `:Telescope find_files`                        |
+|                       | `<leader>fg`         | Live grep with Telescope                         | `:Telescope live_grep`                         |
+|                       | `<leader>fb`         | List open buffers via Telescope                  | `:Telescope buffers`                           |
+|                       | `<leader>fh`         | Show help tags using Telescope                   | `:Telescope help_tags`                         |
 
 *(Note: The `<leader>` key defaults to `\` unless you’ve customized it.)*
 

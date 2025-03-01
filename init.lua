@@ -14,9 +14,6 @@ vim.cmd("filetype plugin on")             -- Enable filetype-specific plugins
 
 vim.opt.laststatus = 2                    -- Always show statusline
 
--- Command-line abbreviation: expand "fzf" to "FZF"
-vim.cmd('cnoreabbrev fzf FZF')
-
 ----------------------------
 -- Lazy.nvim Bootstrapping
 ----------------------------
@@ -46,6 +43,7 @@ require("lazy").setup({
     priority = 1000,
     config = function()
       vim.opt.background = 'light'
+      vim.g.everforest_background = 'hard'
       vim.cmd("colorscheme everforest")
     end,
   },
@@ -67,10 +65,6 @@ require("lazy").setup({
 
   -- Linting & Formatting: ALE
   { 'dense-analysis/ale' },
-
-  -- Fuzzy Finder: fzf and fzf.vim
-  { 'junegunn/fzf', build = function() vim.fn['fzf#install']() end },
-  { 'junegunn/fzf.vim' },
 
   -- Copilot Chat Integration
   {
@@ -111,6 +105,20 @@ require("lazy").setup({
       })
     end,
   },
+
+  -- Telescope: Fuzzy Finder with fzf-native extension
+  {
+    "nvim-telescope/telescope.nvim",
+    dependencies = {
+      "nvim-lua/popup.nvim",
+      "nvim-lua/plenary.nvim",
+      { "nvim-telescope/telescope-fzf-native.nvim", build = "make" },
+    },
+    config = function()
+      require("telescope").load_extension("fzf")
+    end,
+  },
+
 })
 
 ----------------------------
@@ -181,4 +189,12 @@ vim.opt.showtabline = 2
 
 -- File Explorer (neo-tree) key mapping: Toggle with Ctrl+n
 vim.api.nvim_set_keymap('n', '<C-n>', ':Neotree toggle<CR>', { noremap = true, silent = true })
+
+----------------------------
+-- Telescope Key Mappings
+----------------------------
+vim.api.nvim_set_keymap('n', '<leader>ff', ":Telescope find_files<CR>", { noremap = true, silent = true })
+vim.api.nvim_set_keymap('n', '<leader>fg', ":Telescope live_grep<CR>", { noremap = true, silent = true })
+vim.api.nvim_set_keymap('n', '<leader>fb', ":Telescope buffers<CR>", { noremap = true, silent = true })
+vim.api.nvim_set_keymap('n', '<leader>fh', ":Telescope help_tags<CR>", { noremap = true, silent = true })
 
