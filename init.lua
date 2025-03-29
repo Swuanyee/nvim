@@ -133,8 +133,6 @@ local on_attach = function(client, bufnr)
 end
 
 require("lspconfig").ts_ls.setup { on_attach = on_attach }
-require("lspconfig").pyright.setup { on_attach = on_attach }
-require("lspconfig").clangd.setup { on_attach = on_attach }
 -- require("lspconfig").sourcekit.setup { on_attach = on_attach }    -- Swift
 -- require("lspconfig").kotlin_language_server.setup { on_attach = on_attach } -- Kotlin
 
