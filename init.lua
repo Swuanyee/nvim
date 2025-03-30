@@ -15,6 +15,8 @@ vim.opt.laststatus = 2                    -- Always show statusline
 vim.opt.tabstop = 4        	   	  -- Number of spaces a <Tab> counts for
 vim.opt.shiftwidth = 4     		  -- Number of spaces to use for each step of (auto)indent
 vim.opt.expandtab = true   		  -- Use spaces instead of tabs
+vim.o.exrc = true  -- Enable loading of .nvim.lua or .exrc from working directory
+vim.o.secure = true  -- Restrict some commands in local config files for security
 
 ----------------------------
 -- Lazy.nvim Bootstrapping
